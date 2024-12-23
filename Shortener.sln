@@ -1,0 +1,36 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{29A40445-132C-4FBC-98E5-6B1FE105D2B0}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{5172C0ED-2B91-4279-B764-EF0EF371A4FD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Web", "src\Web\Web.csproj", "{A27EFE01-095E-42BC-86F0-985B9ABBEFF1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTest", "test\UnitTest\UnitTest.csproj", "{898E384A-5F3B-4518-9AEC-D20EE9D12F6F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{E9AF23DF-3777-4EAE-8754-FE375B9325D3}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		docker-compose.yml = docker-compose.yml
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{A27EFE01-095E-42BC-86F0-985B9ABBEFF1} = {29A40445-132C-4FBC-98E5-6B1FE105D2B0}
+		{898E384A-5F3B-4518-9AEC-D20EE9D12F6F} = {5172C0ED-2B91-4279-B764-EF0EF371A4FD}
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A27EFE01-095E-42BC-86F0-985B9ABBEFF1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A27EFE01-095E-42BC-86F0-985B9ABBEFF1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A27EFE01-095E-42BC-86F0-985B9ABBEFF1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A27EFE01-095E-42BC-86F0-985B9ABBEFF1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{898E384A-5F3B-4518-9AEC-D20EE9D12F6F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{898E384A-5F3B-4518-9AEC-D20EE9D12F6F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{898E384A-5F3B-4518-9AEC-D20EE9D12F6F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{898E384A-5F3B-4518-9AEC-D20EE9D12F6F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
