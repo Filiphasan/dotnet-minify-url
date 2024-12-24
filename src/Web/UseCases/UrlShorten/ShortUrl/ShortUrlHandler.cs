@@ -1,15 +1,16 @@
 ﻿using MediatR;
 using MongoDB.Driver;
 using QRCoder;
-using Web.Constants;
+using Web.Common.Constants;
+using Web.Common.Models.Endpoints;
+using Web.Common.Models.Options;
 using Web.Data;
-using Web.Models.Endpoints;
 using Web.Services.Interfaces;
 using Web.UseCases.UrlToken.GetUnusedToken;
 
 namespace Web.UseCases.UrlShorten.ShortUrl;
 
-public class ShortUrlHandler(ISender sender, MongoDbContext dbContext, ICacheService cacheService)
+public class ShortUrlHandler(ISender sender, MongoDbContext dbContext, ICacheService cacheService, AppSettingModel appSettingModel)
     : IRequestHandler<ShortUrlCommand, Result<ShortUrlResponse>>
 {
     public async Task<Result<ShortUrlResponse>> Handle(ShortUrlCommand request, CancellationToken cancellationToken)
@@ -35,15 +36,16 @@ public class ShortUrlHandler(ISender sender, MongoDbContext dbContext, ICacheSer
         response.Token = token;
         response.ShortenedUrl = $"https://localhost:5001/{token}";
         response.QrCode = GetQrBase64(request, response.ShortenedUrl);
+        var expireDay = request.ExpireDay ?? appSettingModel.UrlToken.ExpirationDays;
         var urlShorten = new Data.Entities.UrlShorten
         {
             Url = request.Url!,
             Token = token,
             CreatedAt = DateTime.UtcNow,
-            ExpiredAt = DateTime.UtcNow.AddDays(request.ExpireDay)
+            ExpiredAt = DateTime.UtcNow.AddDays(expireDay)
         };
         await dbContext.UrlShortens.InsertOneAsync(urlShorten, null, cancellationToken);
-        await cacheService.SetAsync(string.Format(RedisConstant.Key.ShortUrl, token), request.Url!, TimeSpan.FromDays(request.ExpireDay));
+        await cacheService.SetAsync(string.Format(RedisConstant.Key.ShortUrl, token), request.Url!, TimeSpan.FromDays(expireDay));
 
         return Result<ShortUrlResponse>.Success(response);
     }

@@ -1,4 +1,4 @@
-﻿namespace Web.Constants;
+﻿namespace Web.Common.Constants;
 
 public static class RedisConstant
 {

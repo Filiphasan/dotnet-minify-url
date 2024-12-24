@@ -1,7 +1,7 @@
 ﻿using MongoDB.Driver;
+using Web.Common.Models.Options;
 using Web.Data.Configurations;
 using Web.Data.Entities;
-using Web.Models.Options;
 
 namespace Web.Data;
 

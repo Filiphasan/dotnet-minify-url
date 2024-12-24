@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
-using Web.Models.Endpoints.UrlShort;
+using Web.Common.Models.Endpoints.UrlShort;
 
-namespace Web.Models.Validators.Endpoint;
+namespace Web.Common.Models.Validators.Endpoint;
 
 public class ShortUrlValidator : AbstractValidator<ShortUrlRequest>
 {
@@ -14,9 +14,5 @@ public class ShortUrlValidator : AbstractValidator<ShortUrlRequest>
         RuleFor(x => x.Url)
             .Must(x => Uri.TryCreate(x, UriKind.RelativeOrAbsolute, out _))
             .WithMessage("Url is invalid");
-
-        RuleFor(x => x.ExpireDay)
-            .GreaterThan(0)
-            .WithMessage("Expire day must be greater than 0");
     }
 }

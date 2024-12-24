@@ -1,8 +1,8 @@
 ﻿using MediatR;
 using MongoDB.Driver;
-using Web.Constants;
+using Web.Common.Constants;
+using Web.Common.Models.Endpoints;
 using Web.Data;
-using Web.Models.Endpoints;
 using Web.Services.Interfaces;
 
 namespace Web.UseCases.UrlShorten.GetShortenedUrl;

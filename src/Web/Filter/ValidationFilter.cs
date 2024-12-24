@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
+using Web.Common.Models.Endpoints;
 using Web.Extensions;
-using Web.Models.Endpoints;
 
 namespace Web.Filter;
 

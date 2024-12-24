@@ -1,9 +1,9 @@
 ﻿using Carter;
 using MediatR;
+using Web.Common.Models.Endpoints;
+using Web.Common.Models.Endpoints.UrlShort;
 using Web.Extensions;
 using Web.Filter;
-using Web.Models.Endpoints;
-using Web.Models.Endpoints.UrlShort;
 using Web.UseCases.UrlShorten.GetShortenedUrl;
 using Web.UseCases.UrlShorten.ShortUrl;
 

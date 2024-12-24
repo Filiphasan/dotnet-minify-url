@@ -1,5 +1,5 @@
 ﻿using MediatR;
-using Web.Models.Endpoints;
+using Web.Common.Models.Endpoints;
 
 namespace Web.UseCases.UrlToken.GetUnusedToken;
 

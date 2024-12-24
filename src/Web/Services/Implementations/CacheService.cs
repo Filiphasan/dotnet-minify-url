@@ -1,6 +1,6 @@
 ﻿using System.Text.Json;
 using StackExchange.Redis;
-using Web.Models.Options;
+using Web.Common.Models.Options;
 using Web.Services.Interfaces;
 
 namespace Web.Services.Implementations;

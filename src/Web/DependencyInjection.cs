@@ -5,10 +5,12 @@ using Quartz.AspNetCore;
 using StackExchange.Redis;
 using Web.Data;
 using Web.Jobs;
-using Web.Models.Options;
 using FluentValidation;
+using MediatR;
+using Web.Common.Models.Options;
 using Web.Services.Implementations;
 using Web.Services.Interfaces;
+using Web.UseCases;
 
 namespace Web;
 
@@ -90,7 +92,12 @@ public static class DependencyInjection
 
     private static IServiceCollection AddUseCases(this IServiceCollection services)
     {
-        services.AddMediatR(config => config.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+        services.AddMediatR(config =>
+        {
+            config.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
+            config.AddBehavior(typeof(ValidationBehavior<,>));
+        });
         return services;
     }
 }

@@ -1,10 +1,10 @@
 ﻿using MongoDB.Driver;
 using Quartz;
-using Web.Constants;
+using Web.Common.Constants;
+using Web.Common.Models.Options;
 using Web.Data;
 using Web.Data.Entities;
 using Web.Helpers;
-using Web.Models.Options;
 using Web.Services.Interfaces;
 
 namespace Web.Jobs;
@@ -26,7 +26,7 @@ public class TokenSeedJob(ILogger<TokenSeedJob> logger, MongoDbContext dbContext
                     .WithEpoch(appSettingModel.UrlToken.EpochDate)
                     .WithAdditionalCharLength(3);
 
-                var forCount = appSettingModel.UrlToken.PoolingSize - unsuedTokenCount;
+                var forCount = appSettingModel.UrlToken.PoolingSize - unsuedTokenCount + appSettingModel.UrlToken.ExtendSize;
                 for (int i = 0; i <= forCount; i++)
                 {
                     try
@@ -36,15 +36,15 @@ public class TokenSeedJob(ILogger<TokenSeedJob> logger, MongoDbContext dbContext
                         {
                             token = tokenBuilder.Build();
                         } while (await dbContext.UrlTokens.Find(x => x.Token == token).AnyAsync());
+
                         var urlToken = new UrlToken
                         {
                             Token = token,
                             IsUsed = false,
                             CreatedAt = DateTime.UtcNow,
                         };
-
-                        await cacheService.AddListRightAsync(RedisConstant.Key.TokenSeedList, token);
                         await dbContext.UrlTokens.InsertOneAsync(urlToken);
+                        await cacheService.AddListRightAsync(RedisConstant.Key.TokenSeedList, token);
                     }
                     catch (Exception ex)
                     {

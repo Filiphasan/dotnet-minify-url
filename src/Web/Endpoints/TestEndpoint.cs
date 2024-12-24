@@ -1,6 +1,6 @@
 ﻿using Carter;
+using Web.Common.Models.Options;
 using Web.Helpers;
-using Web.Models.Options;
 
 namespace Web.Endpoints;
 

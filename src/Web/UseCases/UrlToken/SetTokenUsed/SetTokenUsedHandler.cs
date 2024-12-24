@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using MongoDB.Driver;
+using Web.Common.Models.Endpoints;
 using Web.Data;
-using Web.Models.Endpoints;
 
 namespace Web.UseCases.UrlToken.SetTokenUsed;
 

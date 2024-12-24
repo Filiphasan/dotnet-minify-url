@@ -1,6 +1,6 @@
 ﻿using MediatR;
-using Web.Constants;
-using Web.Models.Endpoints;
+using Web.Common.Constants;
+using Web.Common.Models.Endpoints;
 using Web.Services.Interfaces;
 using Web.UseCases.UrlToken.SetTokenUsed;
 

@@ -1,4 +1,4 @@
-﻿namespace Web.Models.Options;
+﻿namespace Web.Common.Models.Options;
 
 public class AppSettingModel
 {
@@ -29,6 +29,7 @@ public class AppSettingRedisModel
 public class AppSettingUrlTokenModel
 {
     public required int PoolingSize { get; set; }
+    public required int ExtendSize { get; set; }
     public required int ExpirationDays { get; set; }
     public required string EpochDate { get; set; }
 }
