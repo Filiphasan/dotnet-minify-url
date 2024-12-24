@@ -11,7 +11,7 @@ public class MongoDbContext
     {
         var databaseName = appSettingModel.MongoDb.Database;
         Database = client.GetDatabase(databaseName);
-        
+
         ConfigureEntities();
     }
 
@@ -28,7 +28,7 @@ public class MongoDbContext
 
     // Database
     private IMongoDatabase Database { get; }
-    
+
     // Collection
     public IMongoCollection<UrlToken> UrlTokens => GetCollection<UrlToken>();
     public IMongoCollection<UrlShorten> UrlShortens => GetCollection<UrlShorten>();

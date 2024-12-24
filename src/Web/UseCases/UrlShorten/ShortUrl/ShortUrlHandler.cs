@@ -34,7 +34,7 @@ public class ShortUrlHandler(ISender sender, MongoDbContext dbContext, ICacheSer
         }
 
         response.Token = token;
-        response.ShortenedUrl = $"https://localhost:5001/{token}";
+        response.ShortenedUrl = $"{appSettingModel.Server.Url}/{token}";
         response.QrCode = GetQrBase64(request, response.ShortenedUrl);
         var expireDay = request.ExpireDay ?? appSettingModel.UrlToken.ExpirationDays;
         var urlShorten = new Data.Entities.UrlShorten
