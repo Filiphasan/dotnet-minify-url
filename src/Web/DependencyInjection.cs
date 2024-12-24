@@ -96,7 +96,6 @@ public static class DependencyInjection
         services.AddMediatR(config =>
         {
             config.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
-            config.AddBehavior(typeof(ValidationBehavior<,>));
         });
         return services;
     }
