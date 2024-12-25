@@ -18,8 +18,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LoadTestK6", "LoadTestK6", "{70E23C75-E5D3-4D31-A4EC-C132E905BC6D}"
 	ProjectSection(SolutionItems) = preProject
 		test\LoadTestK6\regular_load_test.js = test\LoadTestK6\regular_load_test.js
-		test\LoadTestK6\package.json = test\LoadTestK6\package.json
-		test\LoadTestK6\package-lock.json = test\LoadTestK6\package-lock.json
 	EndProjectSection
 EndProject
 Global
