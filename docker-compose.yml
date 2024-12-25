@@ -36,11 +36,12 @@ services:
         dockerfile: src/Web/Dockerfile
     restart: always
     ports:
-      - "5001:80"
+      - "5001:8080"
     volumes:
       - dotnet-minify-url:/app/MinifyUrl/MinifyUrl.Web/wwwroot
     depends_on:
       - mongodb
+      - redis
     environment:
         - ASPNETCORE_ENVIRONMENT=Development
         - Settings:MongoDb:Host=mongodb

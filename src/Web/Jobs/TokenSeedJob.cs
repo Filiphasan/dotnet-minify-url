@@ -16,10 +16,12 @@ public class TokenSeedJob(ILogger<TokenSeedJob> logger, MongoDbContext dbContext
 
     protected override async Task ExecuteAsync(IJobExecutionContext context)
     {
+        _logger.LogInformation("Token seed job started");
         try
         {
             var unusedFilter = Builders<UrlToken>.Filter.Where(x => !x.IsUsed);
             var unsuedTokenCount = await dbContext.UrlTokens.CountDocumentsAsync(unusedFilter);
+            _logger.LogInformation("Token seed job started with {Count} unused tokens", unsuedTokenCount);
             if (unsuedTokenCount < appSettingModel.UrlToken.PoolingSize)
             {
                 var tokenBuilder = new TokenBuilder()
@@ -57,5 +59,6 @@ public class TokenSeedJob(ILogger<TokenSeedJob> logger, MongoDbContext dbContext
         {
             _logger.LogError(ex, "An error occurred while executing the job: {Message}", ex.Message);
         }
+        _logger.LogInformation("Token seed job completed");
     }
 }

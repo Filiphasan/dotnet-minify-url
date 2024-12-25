@@ -12,6 +12,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionIt
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
 		docker-compose.yml = docker-compose.yml
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LoadTestK6", "LoadTestK6", "{70E23C75-E5D3-4D31-A4EC-C132E905BC6D}"
+	ProjectSection(SolutionItems) = preProject
+		test\LoadTestK6\regular_load_test.js = test\LoadTestK6\regular_load_test.js
+		test\LoadTestK6\package.json = test\LoadTestK6\package.json
+		test\LoadTestK6\package-lock.json = test\LoadTestK6\package-lock.json
 	EndProjectSection
 EndProject
 Global
@@ -22,6 +30,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{A27EFE01-095E-42BC-86F0-985B9ABBEFF1} = {29A40445-132C-4FBC-98E5-6B1FE105D2B0}
 		{898E384A-5F3B-4518-9AEC-D20EE9D12F6F} = {5172C0ED-2B91-4279-B764-EF0EF371A4FD}
+		{70E23C75-E5D3-4D31-A4EC-C132E905BC6D} = {5172C0ED-2B91-4279-B764-EF0EF371A4FD}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{A27EFE01-095E-42BC-86F0-985B9ABBEFF1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU

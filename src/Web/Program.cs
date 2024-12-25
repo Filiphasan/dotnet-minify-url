@@ -15,16 +15,13 @@ builder.Services.AddExceptionHandler<GlobalExceptionMiddleware>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+app.MapOpenApi();
+app.MapScalarApiReference(opt =>
 {
-    app.MapOpenApi();
-    app.MapScalarApiReference(opt =>
-    {
-        opt.WithTitle("URL Shortener")
-            .WithDarkMode(true)
-            .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient);
-    });
-}
+    opt.WithTitle("URL Shortener")
+        .WithDarkMode(true)
+        .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient);
+});
 
 app.UseHttpsRedirection();
 
