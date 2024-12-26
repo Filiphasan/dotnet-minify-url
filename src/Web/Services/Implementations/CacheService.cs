@@ -47,7 +47,14 @@ public class CacheService(IConnectionMultiplexer connectionMultiplexer, AppSetti
 
     public async Task<long> AddListRightAsync<TModel>(string key, TModel value) where TModel : class
     {
-        return await _database.ListRightPushAsync(key, JsonSerializer.Serialize(value));
+        var redisValue = new RedisValue(JsonSerializer.Serialize(value));
+        return await _database.ListRightPushAsync(key, redisValue);
+    }
+
+    public async Task<long> AddListRightBulkAsync<TModel>(string key, TModel[] values) where TModel : class
+    {
+        var redisValues = values.AsParallel().Select(x => new RedisValue(JsonSerializer.Serialize(x))).ToArray();
+        return await _database.ListRightPushAsync(key, redisValues);
     }
 
     public async Task<TModel?> ListLeftPopAsync<TModel>(string key) where TModel : class

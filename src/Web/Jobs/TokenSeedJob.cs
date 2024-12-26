@@ -28,7 +28,10 @@ public class TokenSeedJob(ILogger<TokenSeedJob> logger, MongoDbContext dbContext
                     .WithEpoch(appSettingModel.UrlToken.EpochDate)
                     .WithAdditionalCharLength(3);
 
+                var list = new HashSet<string>();
                 var forCount = appSettingModel.UrlToken.PoolingSize - unsuedTokenCount + appSettingModel.UrlToken.ExtendSize;
+                _logger.LogInformation("Token seed job started with {Count} unused tokens, Started Create New Token Count: {NewTokenCount}", unsuedTokenCount, forCount);
+
                 for (int i = 0; i <= forCount; i++)
                 {
                     try
@@ -39,18 +42,30 @@ public class TokenSeedJob(ILogger<TokenSeedJob> logger, MongoDbContext dbContext
                             token = tokenBuilder.Build();
                         } while (await dbContext.UrlTokens.Find(x => x.Token == token).AnyAsync());
 
-                        var urlToken = new UrlToken
-                        {
-                            Token = token,
-                            IsUsed = false,
-                            CreatedAt = DateTime.UtcNow,
-                        };
-                        await dbContext.UrlTokens.InsertOneAsync(urlToken);
-                        await cacheService.AddListRightAsync(RedisConstant.Key.TokenSeedList, token);
+                        list.Add(token);
                     }
                     catch (Exception ex)
                     {
                         _logger.LogError(ex, "An error occurred while generating token: {Message}", ex.Message);
+                    }
+                }
+
+                foreach (var chunkList in list.Chunk(10_000))
+                {
+                    try
+                    {
+                        var urlTokens = chunkList.Select(token => new UrlToken
+                        {
+                            Token = token,
+                            IsUsed = false,
+                            CreatedAt = DateTime.UtcNow,
+                        });
+                        await dbContext.UrlTokens.InsertManyAsync(urlTokens);
+                        await cacheService.AddListRightBulkAsync(RedisConstant.Key.TokenSeedList, chunkList.ToArray());
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "An error occurred while bulk insert token: {Message}", ex.Message);
                     }
                 }
             }
@@ -59,6 +74,7 @@ public class TokenSeedJob(ILogger<TokenSeedJob> logger, MongoDbContext dbContext
         {
             _logger.LogError(ex, "An error occurred while executing the job: {Message}", ex.Message);
         }
+
         _logger.LogInformation("Token seed job completed");
     }
 }

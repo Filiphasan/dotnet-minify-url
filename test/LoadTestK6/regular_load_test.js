@@ -29,9 +29,9 @@ export default function () {
 }
 
 function getUniqueId() {
-    var ticks = new Date().getTime();
-    var uniqueId = ticks.toString(16);
-    var randomNum = Math.floor(Math.random() * 10000);
+    const ticks = new Date().getTime();
+    let uniqueId = ticks.toString(16);
+    const randomNum = Math.floor(Math.random() * 10000);
     uniqueId += randomNum;
     return uniqueId;
 }

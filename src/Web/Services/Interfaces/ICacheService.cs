@@ -11,8 +11,9 @@ public interface ICacheService
         where TModel : class;
     Task<bool> ExistsAsync(string key);
     Task RemoveAsync(string key);
-
     Task<long> AddListRightAsync<TModel>(string key, TModel value)
+        where TModel : class;
+    Task<long> AddListRightBulkAsync<TModel>(string key, TModel[] values)
         where TModel : class;
     Task<TModel?> ListLeftPopAsync<TModel>(string key)
         where TModel : class;

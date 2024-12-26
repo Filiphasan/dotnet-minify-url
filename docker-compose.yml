@@ -47,3 +47,5 @@ services:
         - Settings:Server:Port=5001
         - Settings:MongoDb:Host=mongodb
         - Settings:Redis:Host=redis
+        - Settings:UrlToken:PoolingSize=500000
+        - Settings:UrlToken:ExtendSize=100000
