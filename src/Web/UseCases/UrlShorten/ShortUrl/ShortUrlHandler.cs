@@ -17,7 +17,7 @@ public class ShortUrlHandler(ISender sender, MongoDbContext dbContext, ICacheSer
     {
         var response = new ShortUrlResponse();
         string token;
-        var urlExist = await dbContext.UrlShortens.Find(x => x.Url == request.Url).FirstOrDefaultAsync(cancellationToken);
+        var urlExist = await dbContext.UrlShortens.Find(x => x.Url == request.Url && x.ExpiredAt > DateTime.UtcNow).FirstOrDefaultAsync(cancellationToken);
         if (urlExist != null)
         {
             token = urlExist.Token;
