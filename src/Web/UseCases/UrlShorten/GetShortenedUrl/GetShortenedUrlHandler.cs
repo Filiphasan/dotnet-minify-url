@@ -17,7 +17,7 @@ public class GetShortenedUrlHandler(ICacheService cacheService, MongoDbContext d
         }
 
         var cacheKey = string.Format(RedisConstant.Key.ShortUrl, request.Token);
-        var url = await cacheService.GetAsync<string>(cacheKey);
+        var url = await cacheService.GetAsync<string>(cacheKey, cancellationToken);
         if (url is null)
         {
             var shortUrl = await dbContext.UrlShortens.Find(x => x.Token == request.Token).FirstOrDefaultAsync(cancellationToken);
@@ -27,7 +27,7 @@ public class GetShortenedUrlHandler(ICacheService cacheService, MongoDbContext d
             }
 
             url = shortUrl.Url;
-            await cacheService.SetAsync(cacheKey, url, shortUrl.ExpiredAt);
+            await cacheService.SetAsync(cacheKey, url, shortUrl.ExpiredAt, cancellationToken);
         }
 
         return Result<GetShortenedUrlResponse>.Success(new GetShortenedUrlResponse { LongUrl = url });

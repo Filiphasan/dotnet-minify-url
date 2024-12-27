@@ -45,7 +45,7 @@ public class ShortUrlHandler(ISender sender, MongoDbContext dbContext, ICacheSer
             ExpiredAt = DateTime.UtcNow.AddDays(expireDay)
         };
         await dbContext.UrlShortens.InsertOneAsync(urlShorten, null, cancellationToken);
-        await cacheService.SetAsync(string.Format(RedisConstant.Key.ShortUrl, token), request.Url!, TimeSpan.FromDays(expireDay));
+        await cacheService.SetAsync(string.Format(RedisConstant.Key.ShortUrl, token), request.Url!, TimeSpan.FromDays(expireDay), cancellationToken);
 
         return Result<ShortUrlResponse>.Success(response);
     }
