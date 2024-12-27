@@ -31,8 +31,7 @@ export default function () {
         'status is 200': (r) => r.status === 200,
     });
 
-    const waitTime = Math.random() * (1 - 0.1) + 0.1
-    sleep(waitTime);
+    sleep(0.01);
 }
 
 function getUniqueId() {
