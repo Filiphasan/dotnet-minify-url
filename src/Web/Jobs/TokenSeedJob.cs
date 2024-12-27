@@ -64,14 +64,17 @@ public class TokenSeedJob(ILogger<TokenSeedJob> logger, MongoDbContext dbContext
                     }
                 }
 
-                urlTokens = list.Select(t => new UrlToken
+                if (list.Count > 0)
                 {
-                    Token = t,
-                    IsUsed = false,
-                    CreatedAt = DateTime.UtcNow,
-                });
-                await dbContext.UrlTokens.InsertManyAsync(urlTokens);
-                await cacheService.AddListRightBulkAsync(RedisConstant.Key.TokenSeedList, list.ToArray());
+                    urlTokens = list.Select(t => new UrlToken
+                    {
+                        Token = t,
+                        IsUsed = false,
+                        CreatedAt = DateTime.UtcNow,
+                    });
+                    await dbContext.UrlTokens.InsertManyAsync(urlTokens);
+                    await cacheService.AddListRightBulkAsync(RedisConstant.Key.TokenSeedList, list.ToArray());
+                }
             }
         }
         catch (Exception ex)
