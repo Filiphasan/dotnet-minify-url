@@ -16,11 +16,12 @@ public class TokenSeedJob(ILogger<TokenSeedJob> logger, MongoDbContext dbContext
 
     protected override async Task ExecuteAsync(IJobExecutionContext context)
     {
+        var ct = context.CancellationToken;
         _logger.LogInformation("Token seed job started");
         try
         {
             var unusedFilter = Builders<UrlToken>.Filter.Where(x => !x.IsUsed);
-            var unsuedTokenCount = await dbContext.UrlTokens.CountDocumentsAsync(unusedFilter);
+            var unsuedTokenCount = await dbContext.UrlTokens.CountDocumentsAsync(unusedFilter, cancellationToken: ct);
             _logger.LogInformation("Token seed job started with {Count} unused tokens", unsuedTokenCount);
             if (unsuedTokenCount < appSettingModel.UrlToken.PoolingSize)
             {
@@ -41,7 +42,7 @@ public class TokenSeedJob(ILogger<TokenSeedJob> logger, MongoDbContext dbContext
                         do
                         {
                             token = tokenBuilder.Build();
-                        } while (await dbContext.UrlTokens.Find(x => x.Token == token).AnyAsync());
+                        } while (await dbContext.UrlTokens.Find(x => x.Token == token).AnyAsync(ct));
 
                         list.Add(token);
                         if (list.Count >= 1_000)
@@ -52,8 +53,8 @@ public class TokenSeedJob(ILogger<TokenSeedJob> logger, MongoDbContext dbContext
                                 IsUsed = false,
                                 CreatedAt = DateTime.UtcNow,
                             });
-                            await dbContext.UrlTokens.InsertManyAsync(urlTokens);
-                            await cacheService.AddListRightBulkAsync(RedisConstant.Key.TokenSeedList, list.ToArray());
+                            await dbContext.UrlTokens.InsertManyAsync(urlTokens, cancellationToken: ct);
+                            await cacheService.AddListRightBulkAsync(RedisConstant.Key.TokenSeedList, list.ToArray(), cancellationToken: ct);
                             list.Clear();
                             _logger.LogInformation("Token seed job created {Count} tokens", 1000);
                         }
@@ -72,8 +73,8 @@ public class TokenSeedJob(ILogger<TokenSeedJob> logger, MongoDbContext dbContext
                         IsUsed = false,
                         CreatedAt = DateTime.UtcNow,
                     });
-                    await dbContext.UrlTokens.InsertManyAsync(urlTokens);
-                    await cacheService.AddListRightBulkAsync(RedisConstant.Key.TokenSeedList, list.ToArray());
+                    await dbContext.UrlTokens.InsertManyAsync(urlTokens, cancellationToken: ct);
+                    await cacheService.AddListRightBulkAsync(RedisConstant.Key.TokenSeedList, list.ToArray(), cancellationToken: ct);
                 }
             }
         }
