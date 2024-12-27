@@ -14,7 +14,8 @@ public class GetUnusedTokenHandler(ISender sender, ICacheService cacheService, M
 {
     public async Task<Result<GetUnusedTokenResponse>> Handle(GetUnusedTokenQuery request, CancellationToken cancellationToken)
     {
-        var token = await cacheService.ListLeftPopAsync<string>(RedisConstant.Key.TokenSeedList);
+        bool sendTokenUsed = true;
+        var token = await cacheService.ListLeftPopAsync<string>(RedisConstant.Key.TokenSeedList, cancellationToken);
         if (string.IsNullOrEmpty(token))
         {
             var tokenBuilder = new TokenBuilder()
@@ -24,10 +25,21 @@ public class GetUnusedTokenHandler(ISender sender, ICacheService cacheService, M
             {
                 token = tokenBuilder.Build();
             } while (await dbContext.UrlTokens.Find(x => x.Token == token).AnyAsync(cancellationToken));
-            return Result<GetUnusedTokenResponse>.Error(404, "No token available");
+
+            await dbContext.UrlTokens.InsertOneAsync(new Data.Entities.UrlToken
+            {
+                Token = token,
+                IsUsed = true,
+                CreatedAt = DateTime.UtcNow,
+                UsedAt = DateTime.UtcNow,
+            }, cancellationToken: cancellationToken);
+            sendTokenUsed = false;
         }
 
-        await sender.Send(new SetTokenUsedCommand { Token = token }, cancellationToken);
+        if (sendTokenUsed)
+        {
+            await sender.Send(new SetTokenUsedCommand { Token = token }, cancellationToken);
+        }
         return Result<GetUnusedTokenResponse>.Success(new GetUnusedTokenResponse { Token = token });
     }
 }
