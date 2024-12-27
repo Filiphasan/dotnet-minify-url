@@ -26,12 +26,13 @@ public class GetUnusedTokenHandler(ISender sender, ICacheService cacheService, M
                 token = tokenBuilder.Build();
             } while (await dbContext.UrlTokens.Find(x => x.Token == token).AnyAsync(cancellationToken));
 
+            var now = DateTime.UtcNow;
             await dbContext.UrlTokens.InsertOneAsync(new Data.Entities.UrlToken
             {
                 Token = token,
                 IsUsed = true,
-                CreatedAt = DateTime.UtcNow,
-                UsedAt = DateTime.UtcNow,
+                CreatedAt = now,
+                UsedAt = now,
             }, cancellationToken: cancellationToken);
             sendTokenUsed = false;
         }
