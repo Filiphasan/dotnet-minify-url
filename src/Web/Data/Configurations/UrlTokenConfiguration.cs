@@ -37,6 +37,11 @@ public static class UrlTokenConfiguration
                 .Ascending(x => x.IsUsed)
                 .Ascending(x => x.CreatedAt),
             new CreateIndexOptions { Name = "Ix_Asc_IsUsed_Asc_CreatedAt" }
+        ),
+        new(
+            Builders<UrlToken>.IndexKeys
+                .Ascending(x => x.Token),
+            new CreateIndexOptions { Name = "Ix_Asc_Token", Unique = true }
         )
     ];
 }

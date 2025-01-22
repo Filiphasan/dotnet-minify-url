@@ -1,6 +1,5 @@
 ﻿using MongoDB.Driver;
 using Quartz;
-using Web.Common.Constants;
 using Web.Common.Models.Options;
 using Web.Data;
 using Web.Data.Entities;
@@ -16,12 +15,12 @@ public class TokenSeedJob(ILogger<TokenSeedJob> logger, MongoDbContext dbContext
 
     protected override async Task ExecuteAsync(IJobExecutionContext context)
     {
-        var ct = context.CancellationToken;
+        var cancellationToken = context.CancellationToken;
         _logger.LogInformation("Token seed job started");
         try
         {
             var unusedFilter = Builders<UrlToken>.Filter.Where(x => !x.IsUsed);
-            var unsuedTokenCount = await dbContext.UrlTokens.CountDocumentsAsync(unusedFilter, cancellationToken: ct);
+            var unsuedTokenCount = await dbContext.UrlTokens.CountDocumentsAsync(unusedFilter, cancellationToken: cancellationToken);
             _logger.LogInformation("Token seed job started with {Count} unused tokens", unsuedTokenCount);
             if (unsuedTokenCount < appSettingModel.UrlToken.PoolingSize)
             {
@@ -29,53 +28,31 @@ public class TokenSeedJob(ILogger<TokenSeedJob> logger, MongoDbContext dbContext
                     .WithEpoch(appSettingModel.UrlToken.EpochDate)
                     .WithAdditionalCharLength(3);
 
-                var list = new HashSet<string>();
                 var forCount = appSettingModel.UrlToken.PoolingSize - unsuedTokenCount + appSettingModel.UrlToken.ExtendSize;
                 _logger.LogInformation("Token seed job started with {Count} unused tokens, Started Create New Token Count: {NewTokenCount}", unsuedTokenCount, forCount);
 
-                IEnumerable<UrlToken> urlTokens;
-                for (int i = 0; i <= forCount; i++)
+                var parallelOptions = new ParallelOptions
+                {
+                    CancellationToken = cancellationToken,
+                    MaxDegreeOfParallelism = 10
+                };
+                await Parallel.ForAsync(0, forCount, parallelOptions, async (_, ct) =>
                 {
                     try
                     {
-                        string token;
-                        do
+                        var token = tokenBuilder.Build();
+                        await dbContext.UrlTokens.InsertOneAsync(new UrlToken
                         {
-                            token = tokenBuilder.Build();
-                        } while (await dbContext.UrlTokens.Find(x => x.Token == token).AnyAsync(ct));
-
-                        list.Add(token);
-                        if (list.Count >= 1_000)
-                        {
-                            urlTokens = list.Select(t => new UrlToken
-                            {
-                                Token = t,
-                                IsUsed = false,
-                                CreatedAt = DateTime.UtcNow,
-                            });
-                            await dbContext.UrlTokens.InsertManyAsync(urlTokens, cancellationToken: ct);
-                            await cacheService.AddListRightBulkAsync(RedisConstant.Key.TokenSeedList, list.ToArray(), cancellationToken: ct);
-                            list.Clear();
-                            _logger.LogInformation("Token seed job created {Count} tokens", 1000);
-                        }
+                            Token = token,
+                            IsUsed = false,
+                            CreatedAt = DateTime.UtcNow,
+                        }, null, ct);
                     }
                     catch (Exception ex)
                     {
                         _logger.LogError(ex, "An error occurred while generating token: {Message}", ex.Message);
                     }
-                }
-
-                if (list.Count > 0)
-                {
-                    urlTokens = list.Select(t => new UrlToken
-                    {
-                        Token = t,
-                        IsUsed = false,
-                        CreatedAt = DateTime.UtcNow,
-                    });
-                    await dbContext.UrlTokens.InsertManyAsync(urlTokens, cancellationToken: ct);
-                    await cacheService.AddListRightBulkAsync(RedisConstant.Key.TokenSeedList, list.ToArray(), cancellationToken: ct);
-                }
+                });
             }
         }
         catch (Exception ex)
