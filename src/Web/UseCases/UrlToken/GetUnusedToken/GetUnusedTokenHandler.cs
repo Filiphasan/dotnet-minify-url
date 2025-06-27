@@ -10,21 +10,26 @@ using Web.UseCases.UrlToken.SetTokenUsed;
 
 namespace Web.UseCases.UrlToken.GetUnusedToken;
 
-public class GetUnusedTokenHandler(ISender sender, ICacheService cacheService, MongoDbContext dbContext, AppSettingModel appSettingModel) : IRequestHandler<GetUnusedTokenQuery, Result<GetUnusedTokenResponse>>
+public class GetUnusedTokenHandler(ISender sender, ICacheService cacheService, MongoDbContext dbContext, AppSettingModel appSettingModel)
+    : IRequestHandler<GetUnusedTokenQuery, Result<GetUnusedTokenResponse>>
 {
+    private const int MaxTryCount = 5;
+
     public async Task<Result<GetUnusedTokenResponse>> Handle(GetUnusedTokenQuery request, CancellationToken cancellationToken)
     {
         bool sendTokenUsed = true;
         var token = await cacheService.ListLeftPopAsync<string>(RedisConstant.Key.TokenSeedList, cancellationToken);
         if (string.IsNullOrEmpty(token))
         {
+            int tryCount = 0;
             var tokenBuilder = new TokenBuilder()
                 .WithEpoch(appSettingModel.UrlToken.EpochDate)
                 .WithAdditionalCharLength(3);
             do
             {
                 token = tokenBuilder.Build();
-            } while (await dbContext.UrlTokens.Find(x => x.Token == token).AnyAsync(cancellationToken));
+                tryCount++;
+            } while (tryCount <= MaxTryCount && await dbContext.UrlTokens.Find(x => x.Token == token).AnyAsync(cancellationToken));
 
             var now = DateTime.UtcNow;
             await dbContext.UrlTokens.InsertOneAsync(new Data.Entities.UrlToken

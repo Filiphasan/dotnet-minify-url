@@ -15,12 +15,14 @@ public class ShortUrlHandler(ISender sender, MongoDbContext dbContext, ICacheSer
 {
     public async Task<Result<ShortUrlResponse>> Handle(ShortUrlCommand request, CancellationToken cancellationToken)
     {
-        var response = new ShortUrlResponse();
+        var expireDay = request.ExpireDay ?? appSettingModel.UrlToken.ExpirationDays;
         string token;
+
         var urlExist = await dbContext.UrlShortens.Find(x => x.Url == request.Url && x.ExpiredAt > DateTime.UtcNow).FirstOrDefaultAsync(cancellationToken);
-        if (urlExist != null)
+        if (urlExist is not null)
         {
             token = urlExist.Token;
+            expireDay = (urlExist.ExpiredAt - DateTime.UtcNow).Days;
         }
         else
         {
@@ -31,20 +33,22 @@ public class ShortUrlHandler(ISender sender, MongoDbContext dbContext, ICacheSer
             }
 
             token = getTokenResult.Data!.Token!;
+            var urlShorten = new Data.Entities.UrlShorten
+            {
+                Url = request.Url!,
+                Token = token,
+                CreatedAt = DateTime.UtcNow,
+                ExpiredAt = DateTime.UtcNow.AddDays(expireDay)
+            };
+            await dbContext.UrlShortens.InsertOneAsync(urlShorten, null, cancellationToken);
         }
 
-        response.Token = token;
-        response.ShortenedUrl = $"{appSettingModel.Server.Url}/{token}";
-        response.QrCode = GetQrBase64(request, response.ShortenedUrl);
-        var expireDay = request.ExpireDay ?? appSettingModel.UrlToken.ExpirationDays;
-        var urlShorten = new Data.Entities.UrlShorten
+        var response = new ShortUrlResponse
         {
-            Url = request.Url!,
             Token = token,
-            CreatedAt = DateTime.UtcNow,
-            ExpiredAt = DateTime.UtcNow.AddDays(expireDay)
+            ShortenedUrl = $"{appSettingModel.Server.Url}/{token}",
         };
-        await dbContext.UrlShortens.InsertOneAsync(urlShorten, null, cancellationToken);
+        response.QrCode = GetQrBase64(request, response.ShortenedUrl);
         await cacheService.SetAsync(string.Format(RedisConstant.Key.ShortUrl, token), request.Url!, TimeSpan.FromDays(expireDay), cancellationToken);
 
         return Result<ShortUrlResponse>.Success(response);

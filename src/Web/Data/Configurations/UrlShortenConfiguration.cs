@@ -34,7 +34,7 @@ public static class UrlShortenConfiguration
         new(
             Builders<UrlShorten>.IndexKeys
                 .Ascending(x => x.Token),
-            new CreateIndexOptions { Name = "Ix_Asc_Token" }
+            new CreateIndexOptions { Name = "Ix_Asc_Token", Unique = true }
         ),
         new(
             Builders<UrlShorten>.IndexKeys
