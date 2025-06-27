@@ -78,7 +78,7 @@ public static class DependencyInjection
             quartz.SchedulerName = "UrlShortenScheduler";
             quartz.MisfireThreshold = TimeSpan.FromSeconds(300);
 
-            var tokenSeedJobKey = new JobKey(nameof(TokenSeedJob));
+            var tokenSeedJobKey = new JobKey(nameof(TokenSeedJob), "Shortener");
             quartz.AddJob<TokenSeedJob>(tokenSeedJobKey, job => job.WithDescription("Token Seed Job"));
             quartz.AddTrigger(trigger => trigger
                 .WithIdentity("TokenSeedJobTrigger")
