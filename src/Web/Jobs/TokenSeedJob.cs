@@ -1,5 +1,6 @@
 ﻿using MongoDB.Driver;
 using Quartz;
+using Web.Common.Constants;
 using Web.Common.Models.Options;
 using Web.Data;
 using Web.Data.Entities;
@@ -17,49 +18,73 @@ public class TokenSeedJob(ILogger<TokenSeedJob> logger, MongoDbContext dbContext
     {
         var cancellationToken = context.CancellationToken;
         _logger.LogInformation("Token seed job started");
+
         try
         {
-            var unusedFilter = Builders<UrlToken>.Filter.Where(x => !x.IsUsed);
-            var unsuedTokenCount = await dbContext.UrlTokens.CountDocumentsAsync(unusedFilter, cancellationToken: cancellationToken);
-            _logger.LogInformation("Token seed job started with {Count} unused tokens", unsuedTokenCount);
-            if (unsuedTokenCount < appSettingModel.UrlToken.PoolingSize)
+            int unusedTokenCount = await GetUnusedTokenCountAsync(cancellationToken);
+            _logger.LogInformation("Token seed job found {Count} unused tokens", unusedTokenCount);
+
+            if (ShouldGenerateMoreTokens(unusedTokenCount))
             {
-                var tokenBuilder = new TokenBuilder()
-                    .WithEpoch(appSettingModel.UrlToken.EpochDate)
-                    .WithAdditionalCharLength(3);
+                int tokensToGenerate = CalculateTokensToGenerate(unusedTokenCount);
+                _logger.LogInformation("Generating {NewTokenCount} new tokens", tokensToGenerate);
 
-                var forCount = appSettingModel.UrlToken.PoolingSize - unsuedTokenCount + appSettingModel.UrlToken.ExtendSize;
-                _logger.LogInformation("Token seed job started with {Count} unused tokens, Started Create New Token Count: {NewTokenCount}", unsuedTokenCount, forCount);
-
-                var parallelOptions = new ParallelOptions
-                {
-                    CancellationToken = cancellationToken,
-                    MaxDegreeOfParallelism = 10
-                };
-                await Parallel.ForAsync(0, forCount, parallelOptions, async (_, ct) =>
-                {
-                    try
-                    {
-                        var token = tokenBuilder.Build();
-                        await dbContext.UrlTokens.InsertOneAsync(new UrlToken
-                        {
-                            Token = token,
-                            IsUsed = false,
-                            CreatedAt = DateTime.UtcNow,
-                        }, null, ct);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "An error occurred while generating token: {Message}", ex.Message);
-                    }
-                });
+                await GenerateTokensInParallelAsync(tokensToGenerate, cancellationToken);
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An error occurred while executing the job: {Message}", ex.Message);
+            _logger.LogError(ex, "An error occurred while executing the token seed job: {Message}", ex.Message);
         }
 
         _logger.LogInformation("Token seed job completed");
+    }
+
+    private async Task<int> GetUnusedTokenCountAsync(CancellationToken cancellationToken)
+    {
+        var unusedFilter = Builders<UrlToken>.Filter.Where(x => !x.IsUsed);
+        return (int)await dbContext.UrlTokens.CountDocumentsAsync(unusedFilter, cancellationToken: cancellationToken);
+    }
+
+    private bool ShouldGenerateMoreTokens(int unusedTokenCount)
+    {
+        return unusedTokenCount < appSettingModel.UrlToken.PoolingSize;
+    }
+
+    private int CalculateTokensToGenerate(int unusedTokenCount)
+    {
+        return appSettingModel.UrlToken.PoolingSize - unusedTokenCount + appSettingModel.UrlToken.ExtendSize;
+    }
+
+    private async Task GenerateTokensInParallelAsync(int count, CancellationToken cancellationToken)
+    {
+        var tokenBuilder = new TokenBuilder()
+            .WithEpoch(appSettingModel.UrlToken.EpochDate)
+            .WithAdditionalCharLength(3);
+
+        var parallelOptions = new ParallelOptions
+        {
+            CancellationToken = cancellationToken,
+            MaxDegreeOfParallelism = 10
+        };
+
+        await Parallel.ForAsync(0, count, parallelOptions, async (_, ct) =>
+        {
+            try
+            {
+                var token = tokenBuilder.Build();
+                await dbContext.UrlTokens.InsertOneAsync(new UrlToken
+                {
+                    Token = token,
+                    IsUsed = false,
+                    CreatedAt = DateTime.UtcNow,
+                }, null, ct);
+                await cacheService.AddListRightAsync(RedisConstant.Key.TokenSeedList, token, ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while generating token: {Message}", ex.Message);
+            }
+        });
     }
 }

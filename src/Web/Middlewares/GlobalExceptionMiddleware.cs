@@ -1,5 +1,4 @@
-﻿using System.Net;
-using FluentValidation;
+﻿using FluentValidation;
 using Microsoft.AspNetCore.Diagnostics;
 using Web.Common.Models.Endpoints;
 
